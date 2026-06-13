@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>友情链接申请</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  [x-cloak] { display: none !important; }
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-size: 200% 200%;
+    animation: gradient 15s ease infinite;
+  }
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .input-focus:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s;
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .rule-item {
+    transition: all 0.2s;
+  }
+  .rule-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(4px);
+  }
+</style>
+</head>
+<body class="gradient-bg min-h-screen py-8 px-4">
+<div x-data="app()" x-init="init()" x-cloak class="max-w-2xl mx-auto">
+
+  <!-- Header -->
+  <div class="text-center mb-8 text-white">
+    <h1 class="text-4xl md:text-5xl font-bold mb-2 drop-shadow-lg">友情链接</h1>
+    <p class="text-white/80 text-sm md:text-base">FRIEND LINKS · 申请友链</p>
+  </div>
+
+  <!-- Main Card -->
+  <div class="glass rounded-2xl shadow-2xl p-6 md:p-8 mb-6">
+    <form @submit.prevent="submit">
+      <div class="space-y-5">
+        <!-- 网站标题 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            网站标题 <span class="text-red-500">*</span>
+          </label>
+          <input x-model="form.title" maxlength="50" type="text" required
+            class="input-focus w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 transition"
+            placeholder="例如：笑的主页">
+        </div>
+
+        <!-- 网站头像 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            网站头像 URL <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-500 ml-1">（建议使用快速图床）</span>
+          </label>
+          <div class="flex gap-2">
+            <input x-model="form.avatar" type="url" required
+              class="input-focus flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 transition"
+              placeholder="https://...">
+            <div class="w-12 h-12 border border-gray-200 rounded-lg overflow-hidden bg-gray-50 flex-shrink-0">
+              <img :src="form.avatar || ''" @error="$event.target.style.display='none'" @load="$event.target.style.display='block'"
+                class="w-full h-full object-cover" alt="">
+            </div>
+          </div>
+        </div>
+
+        <!-- 网站链接 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            网站链接 <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-500 ml-1">（不可用 *.netlify.app / *.vercel.app 等）</span>
+          </label>
+          <input x-model="form.link" type="url" required
+            class="input-focus w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 transition"
+            placeholder="https://example.com">
+        </div>
+
+        <!-- 网站描述 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            网站描述 <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-500 ml-1" x-text="`${form.descr.length}/200`"></span>
+          </label>
+          <textarea x-model="form.descr" maxlength="200" required rows="3"
+            class="input-focus w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 transition resize-none"
+            placeholder="一句话介绍你的网站"></textarea>
+        </div>
+
+        <!-- RSS -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            RSS 订阅地址 <span class="text-gray-400 text-xs ml-1">（可选，提供后会被收录到 RSS 聚合）</span>
+          </label>
+          <input x-model="form.rss" type="url"
+            class="input-focus w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 transition"
+            placeholder="https://example.com/rss.xml">
+        </div>
+
+        <!-- 条款 -->
+        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-100">
+          <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+            </svg>
+            友情链接申请原则
+          </h3>
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">1.</span> 友链内容需符合中国法规，<b class="text-red-500">禁止黄、赌、毒等</b>有害内容
+            </li>
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">2.</span> 链接应为个人博客/引导页、博客园等博客聚合，暂不支持引流推广
+            </li>
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">3.</span> 网站需配置独立域名，不能使用 <code class="bg-white px-1 rounded text-xs">*.netlify.app</code> / <code class="bg-white px-1 rounded text-xs">*.vercel.app</code> / <code class="bg-white px-1 rounded text-xs">*.page.cloudflare.com</code>
+            </li>
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">4.</span> 网站需在中国大陆顺利访问，首屏加载不超过 1 分钟
+            </li>
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">5.</span> 头像请使用较快的图床
+            </li>
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">6.</span> 网站运行稳定，文章多为原创（博客聚合除外）
+            </li>
+            <li class="rule-item p-2 rounded">
+              <span class="text-purple-600 font-bold">7.</span> 贵站需<b class="text-purple-600">已添加本站</b>为友情链接
+            </li>
+          </ul>
+          <label class="flex items-center mt-4 cursor-pointer select-none">
+            <input x-model="form.agreed" type="checkbox" required
+              class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+            <span class="ml-2 text-sm text-gray-700">我已阅读并同意以上全部条款</span>
+          </label>
+        </div>
+
+        <!-- 错误 -->
+        <div x-show="error" x-transition
+          class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm" x-text="error"></div>
+
+        <!-- 提交按钮 -->
+        <button type="submit" :disabled="loading" class="btn-primary w-full text-white font-semibold py-3 rounded-lg">
+          <span x-show="!loading">提交申请</span>
+          <span x-show="loading" class="flex items-center justify-center">
+            <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            提交中...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Success Modal -->
+  <div x-show="success" x-transition.opacity
+    class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" @click.self="success=false">
+    <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center" @click.stop>
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">申请已提交！</h3>
+      <p class="text-gray-600 text-sm mb-6">请等待审核，结果可在<a href="/cheak" class="text-purple-600 underline">查询页</a>查看</p>
+      <button @click="success=false; reset()" class="btn-primary text-white px-6 py-2 rounded-lg">好的</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="text-center text-white/70 text-xs">
+    <a href="/cheak" class="hover:text-white transition">查询申请状态</a>
+    <span class="mx-2">·</span>
+    <span>友情链接系统</span>
+  </div>
+</div>
+
+<script>
+function app() {
+  return {
+    form: { title: '', avatar: '', link: '', descr: '', rss: '', agreed: false },
+    loading: false,
+    success: false,
+    error: '',
+    init() {},
+    async submit() {
+      this.error = '';
+      this.loading = true;
+      try {
+        const resp = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.form)
+        });
+        const data = await resp.json();
+        if (!resp.ok || data.error) {
+          this.error = (data.errors && data.errors.join('；')) || data.error || '提交失败';
+        } else {
+          this.success = true;
+        }
+      } catch (e) {
+        this.error = '网络错误：' + e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+    reset() {
+      this.form = { title: '', avatar: '', link: '', descr: '', rss: '', agreed: false };
+    }
+  };
+}
+</script>
+</body>
+</html>
