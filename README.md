@@ -83,6 +83,8 @@ Pages 项目 → **Settings** → **Environment variables** → 添加：
 | 变量名 | 必填 | 说明 |
 |--------|------|------|
 | `CRON_SECRET` | ✅ | 任意随机字符串，用于 `/api/cron/refresh` 鉴权 |
+| `TUCANG_TOKEN` | 可选 | TuCang 图床 token（不设则用 KV 配置或内置默认值） |
+| `TUCANG_FOLDER_ID` | 可选 | TuCang 图床文件夹 ID |
 
 ### 5. 配置定时刷新 RSS
 

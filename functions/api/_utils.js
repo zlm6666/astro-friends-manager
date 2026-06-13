@@ -159,14 +159,27 @@ export async function sendEmail(env, subject, html) {
 
 // 图床上传
 export async function uploadToTuCang(env, imageUrl) {
-  const raw = await env.LINKS.get('config:tuCang');
-  if (!raw) return { ok: false, url: imageUrl, reason: '图床未配置' };
-  const cfg = JSON.parse(raw);
-  if (!cfg.token || !cfg.folderId) return { ok: false, url: imageUrl, reason: '图床配置缺失' };
+  // 优先级：环境变量 > KV 配置 > 内置默认值
+  let token = env.TUCANG_TOKEN;
+  let folderId = env.TUCANG_FOLDER_ID;
+
+  if (!token || !folderId) {
+    const raw = await env.LINKS.get('config:tuCang');
+    if (raw) {
+      const cfg = JSON.parse(raw);
+      token = token || cfg.token;
+      folderId = folderId || cfg.folderId;
+    }
+  }
+
+  // 内置默认值（仅此一次）
+  token = token || '1769184743526286121fab11244f28a492ea46ae56e1f';
+  folderId = folderId || '3576';
+
   try {
     const form = new FormData();
-    form.append('token', cfg.token);
-    form.append('folderId', cfg.folderId);
+    form.append('token', token);
+    form.append('folderId', folderId);
     form.append('url', imageUrl);
     const resp = await fetch('https://api.tucang.cc/api/v1/upload', {
       method: 'POST',
