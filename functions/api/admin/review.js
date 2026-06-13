@@ -64,6 +64,30 @@ export async function onRequestPost({ request, env }) {
     return err('记录不存在');
   }
 
+  if (action === 'edit') {
+    const { data } = body;
+    if (!data) return err('缺少 data');
+    // 遍历三个状态找到记录
+    for (const status of ['pending', 'approved', 'rejected']) {
+      const list = await getList(env, `link:list:${status}`);
+      if (list.includes(id)) {
+        const raw = await env.LINKS.get(`link:${status}:${id}`);
+        if (!raw) return err('记录不存在');
+        const record = JSON.parse(raw);
+        // 更新字段（仅更新传了的）
+        if (data.title !== undefined) record.title = data.title.trim();
+        if (data.avatar !== undefined) record.avatar = data.avatar.trim();
+        if (data.link !== undefined) record.link = data.link.trim();
+        if (data.descr !== undefined) record.descr = data.descr.trim();
+        if (data.rss !== undefined) record.rss = data.rss.trim();
+        record.updatedAt = new Date().toISOString();
+        await env.LINKS.put(`link:${status}:${id}`, JSON.stringify(record));
+        return ok({ message: '已更新', record });
+      }
+    }
+    return err('记录不存在');
+  }
+
   return err('未知 action');
 }
 
