@@ -215,6 +215,7 @@ function formatArticle(article) {
     title: cleanText(article.title || '无标题'),
     auther,
     date: dateStr,
+    isoDate: date.toISOString(),
     link: article.link || '',
     content: cleanContent
   };
