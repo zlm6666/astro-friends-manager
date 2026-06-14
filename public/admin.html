@@ -171,8 +171,10 @@
                       class="btn text-white px-3 py-2 rounded-lg text-sm"
                       :class="item.pinned?'bg-yellow-500':'bg-indigo-500'"
                       x-text="item.pinned?'📌 已置顶':'置顶'"></button>
-                    <button @click="review(item.id,'delete')"
-                      class="btn bg-gray-500 text-white px-3 py-2 rounded-lg text-sm">删除</button>
+                    <button @click="deleteItem(item.id)"
+                      class="btn px-3 py-2 rounded-lg text-sm font-medium"
+                      :class="confirmDelete===item.id?'bg-red-600 text-white':'bg-gray-500 text-white'"
+                      x-text="confirmDelete===item.id?'确认删除':'删除'"></button>
                   </div>
                 </div>
               </div>
@@ -369,7 +371,7 @@ function admin() {
     saving: false, testing: false, emailMsg: '', emailOk: false, tuCangMsg: '', tuCangOk: false,
     pwdForm: { old: '', new: '', cfm: '' }, pwdMsg: '', pwdOk: false,
     editModal: false, editForm: { id: '', title: '', avatar: '', link: '', descr: '', rss: '' },
-    editMsg: '', editOk: false,
+    editMsg: '', editOk: false, confirmDelete: null,
 
     get tabTitle() {
       return { pending: '📋 待审核', approved: '✅ 已通过', rejected: '❌ 已拒绝' }[this.tab] || '';
@@ -498,6 +500,20 @@ function admin() {
         if (r.ok) { await this.loadList(this.tab); await this.loadCounts(); }
         else { const d = await r.json(); alert(d.error || '操作失败'); }
       } catch { alert('操作失败'); }
+    },
+
+    deleteItem(id) {
+      if (this.confirmDelete === id) {
+        // 第二次点击 → 真的删除
+        this.confirmDelete = null;
+        this.review(id, 'delete');
+      } else {
+        // 第一次点击 → 确认状态
+        this.confirmDelete = id;
+        // 3秒后自动取消确认状态
+        clearTimeout(this._deleteTimer);
+        this._deleteTimer = setTimeout(() => { this.confirmDelete = null; }, 3000);
+      }
     },
 
     openEdit(item) {

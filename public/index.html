@@ -154,6 +154,17 @@ rss: https://blog.xiaow.qzz.io/rss.xml"></textarea>
             placeholder="https://example.com/rss.xml">
         </div>
 
+        <!-- 邮箱 -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            电子邮箱 <span class="text-purple-500 text-xs ml-1">推荐</span>
+            <span class="text-gray-400 text-xs">（审核结果通知用，不会公开）</span>
+          </label>
+          <input x-model="form.email" type="email"
+            class="input-focus w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 transition"
+            placeholder="your@email.com（选填，通过/拒绝时会通知你）">
+        </div>
+
         <!-- 条款 -->
         <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-100">
           <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
@@ -212,6 +223,24 @@ rss: https://blog.xiaow.qzz.io/rss.xml"></textarea>
     </form>
   </div>
 
+  <!-- 邮箱确认弹窗 -->
+  <div x-show="showEmailConfirm" x-transition.opacity
+    class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" @click.self="showEmailConfirm=false">
+    <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl" @click.stop>
+      <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">未填写邮箱</h3>
+      <p class="text-gray-600 text-sm mb-2">填了邮箱可以收到审核结果通知，<br>确定跳过直接提交吗？</p>
+      <div class="flex gap-3 justify-center mt-6">
+        <button @click="showEmailConfirm=false" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition">继续填写</button>
+        <button @click="doSubmit()" class="bg-purple-500 text-white px-5 py-2 rounded-lg hover:bg-purple-600 transition">直接提交</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Success Modal -->
   <div x-show="success" x-transition.opacity
     class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" @click.self="success=false">
@@ -238,9 +267,10 @@ rss: https://blog.xiaow.qzz.io/rss.xml"></textarea>
 <script>
 function app() {
   return {
-    form: { title: '', avatar: '', link: '', descr: '', rss: '', agreed: false },
+    form: { title: '', avatar: '', link: '', descr: '', rss: '', email: '', agreed: false },
     loading: false, success: false, error: '',
     showImport: false, importText: '', parsing: false, importMsg: '', importOk: false,
+    showEmailConfirm: false,
 
     init() {},
 
@@ -269,6 +299,7 @@ function app() {
         const link = data.link || data.url || '';
         const descr = data.descr || data.description || data.desc || data.bio || '';
         const rss = data.rss || data.feed || '';
+        const email = data.email || data.mail || '';
 
         if (!title || !link) {
           this.importMsg = '未提取到标题或链接，换种格式试试';
@@ -279,6 +310,7 @@ function app() {
           this.form.link = link;
           this.form.descr = descr.substring(0, 200);
           this.form.rss = rss;
+          this.form.email = email;
           this.importMsg = '✅ 已填入表单，确认后点提交';
           this.importOk = true;
         }
@@ -322,6 +354,17 @@ function app() {
     },
     async submit() {
       this.error = '';
+      // 没填邮箱 → 弹窗提醒
+      if (!this.form.email.trim()) {
+        this.showEmailConfirm = true;
+        return;
+      }
+      await this.doSubmit();
+    },
+
+    async doSubmit() {
+      this.showEmailConfirm = false;
+      this.error = '';
       this.loading = true;
       try {
         const resp = await fetch('/api/submit', {
@@ -342,7 +385,7 @@ function app() {
       }
     },
     reset() {
-      this.form = { title: '', avatar: '', link: '', descr: '', rss: '', agreed: false };
+      this.form = { title: '', avatar: '', link: '', descr: '', rss: '', email: '', agreed: false };
       this.importText = ''; this.importMsg = ''; this.importOk = false;
     }
   };

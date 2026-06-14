@@ -131,12 +131,13 @@ export async function setList(env, key, arr) {
   await env.LINKS.put(key, JSON.stringify(arr));
 }
 
-// 邮件发送（Resend API）
-export async function sendEmail(env, subject, html) {
+// 邮件发送（Resend API），to 可选，不传则用配置中的收件邮箱
+export async function sendEmail(env, subject, html, to) {
   const raw = await env.LINKS.get('config:email');
   if (!raw) throw new Error('邮件未配置');
   const cfg = JSON.parse(raw);
-  if (!cfg.apiKey || !cfg.from || !cfg.to) throw new Error('邮件配置不完整（apiKey/from/to）');
+  if (!cfg.apiKey || !cfg.from) throw new Error('邮件配置不完整（apiKey/from）');
+  if (!cfg.to && !to) throw new Error('收件邮箱未配置');
 
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -146,7 +147,7 @@ export async function sendEmail(env, subject, html) {
     },
     body: JSON.stringify({
       from: cfg.fromName ? `${cfg.fromName} <${cfg.from}>` : cfg.from,
-      to: cfg.to,
+      to: to || cfg.to,
       subject,
       html
     })

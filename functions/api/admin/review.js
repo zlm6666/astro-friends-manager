@@ -1,6 +1,6 @@
 // functions/api/admin/review.js
 // 审核操作：approve / reject / delete
-import { ok, err, requireAdmin, getList, setList, uploadToTuCang } from '../_utils.js';
+import { ok, err, requireAdmin, getList, setList, uploadToTuCang, sendEmail } from '../_utils.js';
 
 export async function onRequestPost({ request, env }) {
   const auth = await requireAdmin(request, env);
@@ -31,6 +31,15 @@ export async function onRequestPost({ request, env }) {
     await env.LINKS.delete(`link:pending:${id}`);
     await setList(env, 'link:list:pending', pending.filter(x => x !== id));
 
+    // 通知申请人
+    if (record.email) {
+      try {
+        await sendEmail(env, `【友链通过】${record.title}`,
+          `<h2>友链已通过审核 ✅</h2><p>${escapeHtml(record.title)}，您的友链申请已通过！</p><p><a href="${new URL(request.url).origin}/cheak">查看详情</a></p>`,
+          record.email);
+      } catch (e) { console.error('通过通知失败:', e.message); }
+    }
+
     return ok({ message: '已通过', record });
   }
 
@@ -48,6 +57,17 @@ export async function onRequestPost({ request, env }) {
     await setList(env, 'link:list:rejected', rejected);
     await env.LINKS.delete(`link:pending:${id}`);
     await setList(env, 'link:list:pending', pending.filter(x => x !== id));
+
+    // 通知申请人
+    if (record.email) {
+      try {
+        const reasonHtml = record.rejectReason ? `<p>原因：${escapeHtml(record.rejectReason)}</p>` : '';
+        await sendEmail(env, `【友链未通过】${record.title}`,
+          `<h2>友链未通过审核 ❌</h2><p>${escapeHtml(record.title)}，您的友链申请未通过。</p>${reasonHtml}<p><a href="${new URL(request.url).origin}/cheak">查看详情</a></p>`,
+          record.email);
+      } catch (e) { console.error('拒绝通知失败:', e.message); }
+    }
+
     return ok({ message: '已拒绝' });
   }
 
@@ -104,6 +124,12 @@ export async function onRequestPost({ request, env }) {
   }
 
   return err('未知 action');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
 }
 
 export async function onRequestOptions() { return new Response(null, { status: 204 }); }

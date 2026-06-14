@@ -37,6 +37,7 @@ export async function onRequestPost({ request, env }) {
     link: body.link.trim(),
     descr: body.descr.trim(),
     rss: (body.rss || '').trim(),
+    email: (body.email || '').trim(),
     createdAt: new Date().toISOString()
   };
   await env.LINKS.put(`link:pending:${id}`, JSON.stringify(record));
@@ -54,6 +55,7 @@ export async function onRequestPost({ request, env }) {
          <p><b>头像：</b><a href="${record.avatar}">${record.avatar}</a></p>
          <p><b>描述：</b>${escapeHtml(record.descr)}</p>
          <p><b>RSS：</b>${record.rss ? `<a href="${record.rss}">${record.rss}</a>` : '未提供'}</p>
+         <p><b>邮箱：</b>${record.email || '未提供'}</p>
          <p><a href="${new URL(request.url).origin}/admin">前往审核</a></p>`);
     }
   } catch (e) {
