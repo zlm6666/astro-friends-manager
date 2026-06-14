@@ -131,6 +131,39 @@ export async function setList(env, key, arr) {
   await env.LINKS.put(key, JSON.stringify(arr));
 }
 
+// 精美邮件 HTML 模板
+export function buildEmailHtml(title, content, btnText, btnUrl) {
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f9;padding:30px 10px">
+<tr><td align="center">
+<table width="100%" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.06)">
+  <!-- 顶栏 -->
+  <tr><td style="background:linear-gradient(135deg,#667eea,#764ba2);padding:32px 36px;text-align:center">
+    <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700">${title}</h1>
+  </td></tr>
+  <!-- 内容 -->
+  <tr><td style="padding:32px 36px;color:#374151;font-size:15px;line-height:1.7">
+    ${content}
+  </td></tr>
+  ${btnText && btnUrl ? `<tr><td style="padding:0 36px 36px;text-align:center">
+    <a href="${btnUrl}" style="display:inline-block;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:600">${btnText}</a>
+  </td></tr>` : ''}
+  <!-- 底栏 -->
+  <tr><td style="padding:20px 36px;background:#f9fafb;text-align:center;font-size:12px;color:#9ca3af">
+    友链管理系统 · 自动发送，请勿回复
+  </td></tr>
+</table>
+</td></tr></table></body></html>`;
+}
+
+export function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
 // 邮件发送（Resend API），to 可选，不传则用配置中的收件邮箱
 export async function sendEmail(env, subject, html, to) {
   const raw = await env.LINKS.get('config:email');
