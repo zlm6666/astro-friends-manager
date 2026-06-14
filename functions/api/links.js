@@ -23,7 +23,7 @@ export async function onRequestGet({ env }) {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'public, max-age=600'
+      'Cache-Control': 'public, max-age=7200, s-maxage=14400'
     }
   });
 }
