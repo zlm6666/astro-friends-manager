@@ -1,6 +1,6 @@
 // functions/api/admin/review.js
 // 审核操作：approve / reject / delete
-import { ok, err, requireAdmin, getList, setList, uploadToTuCang, queueEmail, buildEmailHtml, escapeHtml } from '../_utils.js';
+import { ok, err, requireAdmin, getList, setList, uploadToTuCang, queueEmail, flushEmailQueue, buildEmailHtml, escapeHtml } from '../_utils.js';
 
 export async function onRequestPost({ request, env }) {
   const auth = await requireAdmin(request, env);
@@ -44,9 +44,7 @@ export async function onRequestPost({ request, env }) {
       await queueEmail(env, `🎉 友链已通过！${record.title}`,
         buildEmailHtml('✅ 审核通过', content, '查看详情', `${origin}/cheak`), record.email);
       // 立即触发发送
-      const tUrl = new URL('/api/cron/send-pending', request.url);
-      tUrl.searchParams.set('secret', env.CRON_SECRET);
-      fetch(tUrl).catch(() => {});
+      await flushEmailQueue(request, env);
     }
 
     return ok({ message: '已通过', record });
@@ -81,9 +79,7 @@ export async function onRequestPost({ request, env }) {
       await queueEmail(env, `😅 友链未通过 - ${record.title}`,
         buildEmailHtml('❌ 未通过审核', content, '查看详情', `${origin}/cheak`), record.email);
       // 立即触发发送
-      const tUrl = new URL('/api/cron/send-pending', request.url);
-      tUrl.searchParams.set('secret', env.CRON_SECRET);
-      fetch(tUrl).catch(() => {});
+      await flushEmailQueue(request, env);
     }
 
     return ok({ message: '已拒绝' });
@@ -197,9 +193,7 @@ export async function onRequestPost({ request, env }) {
               buildEmailHtml('❌ 未通过审核', content, '查看详情', `${origin}/cheak`), record.email);
           }
           // 立即触发发送
-          const tUrl = new URL('/api/cron/send-pending', request.url);
-          tUrl.searchParams.set('secret', env.CRON_SECRET);
-          fetch(tUrl).catch(() => {});
+          await flushEmailQueue(request, env);
         }
 
         return ok({ message: '状态已变更', record });

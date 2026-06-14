@@ -205,6 +205,21 @@ export async function queueEmail(env, subject, html, to) {
   await env.LINKS.put(key, JSON.stringify({ subject, html, to: to || '', createdAt: Date.now() }));
 }
 
+// 立即触发队列发送（带 8 秒超时，防 SMTP 拖死请求）
+export async function flushEmailQueue(request, env) {
+  const url = new URL('/api/cron/send-pending', request.url);
+  url.searchParams.set('secret', env.CRON_SECRET || '');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    return await fetch(url, { signal: ctrl.signal });
+  } catch {
+    // 超时或失败都不影响主流程
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // 邮件发送（同步，仅供测试邮件等需要即时反馈的场景）
 export async function sendEmail(env, subject, html, to) {
   const raw = await env.LINKS.get('config:email');

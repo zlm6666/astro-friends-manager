@@ -1,5 +1,5 @@
 // functions/api/submit.js
-import { ok, err, validateLink, genId, getList, setList, queueEmail, buildEmailHtml, escapeHtml } from './_utils.js';
+import { ok, err, validateLink, genId, getList, setList, queueEmail, flushEmailQueue, buildEmailHtml, escapeHtml } from './_utils.js';
 
 export async function onRequestPost({ request, env }) {
   let body;
@@ -63,10 +63,7 @@ export async function onRequestPost({ request, env }) {
       </table>`;
     await queueEmail(env, `【新友链申请】${record.title}`,
       buildEmailHtml('📩 新友链申请', content, '前往审核', adminUrl));
-    // 立即触发一次发送扫描
-    const triggerUrl = new URL('/api/cron/send-pending', request.url);
-    triggerUrl.searchParams.set('secret', env.CRON_SECRET);
-    fetch(triggerUrl).catch(() => {});
+    await flushEmailQueue(request, env);
   }
 
   return ok({ id, message: '申请已提交，请等待审核' });
