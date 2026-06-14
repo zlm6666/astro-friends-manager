@@ -2,6 +2,14 @@
 // RSS 抓取 + 轮换 + 格式化核心逻辑
 import { getList } from './_utils.js';
 
+// UTC+8 (CST) 时间格式化
+function toCST(ts) {
+  const d = ts ? new Date(ts) : new Date();
+  const cst = new Date(d.getTime() + 8 * 3600000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${cst.getUTCFullYear()}-${pad(cst.getUTCMonth()+1)}-${pad(cst.getUTCDate())}T${pad(cst.getUTCHours())}:${pad(cst.getUTCMinutes())}:${pad(cst.getUTCSeconds())}+08:00`;
+}
+
 // 默认源（申请友链无 RSS 时使用这些兜底）
 const DEFAULT_FEEDS = [
   'https://www.wsyblog.cn/rss.xml',
@@ -76,7 +84,7 @@ export async function runRssUpdate(env) {
   // 写回
   await env.LINKS.put('rss:articles', JSON.stringify(formatted));
   await env.LINKS.put('rss:cursor', String(newCursor));
-  await env.LINKS.put('rss:lastUpdate', new Date().toISOString());
+  await env.LINKS.put('rss:lastUpdate', toCST());
   await env.LINKS.put('rss:feeds:current', JSON.stringify(pick));
 
   return {
@@ -216,7 +224,7 @@ function formatArticle(article) {
     title: cleanText(article.title || '无标题'),
     auther,
     date: dateStr,
-    isoDate: date.toISOString(),
+    isoDate: toCST(date),
     link: article.link || '',
     content: cleanContent,
     sourceFeedTitle: article.sourceFeedTitle || auther      // 保留，供下次合并重新入库时用
