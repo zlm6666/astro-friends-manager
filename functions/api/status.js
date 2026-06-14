@@ -11,21 +11,24 @@ export async function onRequestGet({ request, env }) {
   const rejected = await getList(env, 'link:list:rejected');
 
   const match = (r) => r && (r.title.includes(q) || r.link.includes(q));
+  const scan = (list, status) => {
+    const out = [];
+    for (const id of list) {
+      const r = JSON.parse(await env.LINKS.get(`link:${status}:${id}`) || 'null');
+      if (match(r)) out.push({ status, record: r });
+    }
+    return out;
+  };
 
-  for (const id of pending) {
-    const r = JSON.parse(await env.LINKS.get(`link:pending:${id}`) || 'null');
-    if (match(r)) return ok({ status: 'pending', record: r });
-  }
-  for (const id of approved) {
-    const r = JSON.parse(await env.LINKS.get(`link:approved:${id}`) || 'null');
-    if (match(r)) return ok({ status: 'approved', record: r });
-  }
-  for (const id of rejected) {
-    const r = JSON.parse(await env.LINKS.get(`link:rejected:${id}`) || 'null');
-    if (match(r)) return ok({ status: 'rejected', record: r });
-  }
+  const items = [
+    ...(await scan(pending, 'pending')),
+    ...(await scan(approved, 'approved')),
+    ...(await scan(rejected, 'rejected'))
+  ];
 
-  return ok({ status: 'not_found', message: '未找到该申请记录' });
+  return items.length
+    ? ok({ items })
+    : ok({ items: [], message: '未找到匹配记录' });
 }
 
 export async function onRequestOptions() {
