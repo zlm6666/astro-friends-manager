@@ -142,9 +142,12 @@ export function buildEmailHtml(title, content, btnText, btnUrl) {
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>友链通知</title>
 <style>
+html{color-scheme:light only!important}
 body{margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;color:#333;line-height:1.6}
 .email-container{max-width:600px;margin:20px auto;border:1px solid #eee;border-radius:8px;overflow:hidden}
 .email-header{padding:24px;text-align:center;border-bottom:1px solid #f0f0f0;background:#ffffff}
@@ -175,7 +178,7 @@ body,p,h1,li,.label,.email-body p,.email-footer,.info-card,.info-card p{color:#3
 }
 </style>
 </head>
-<body>
+<body style="background:#ffffff;color:#333333">
 <div class="email-container">
   <div class="email-header">
     <h1>${title}</h1>
