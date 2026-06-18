@@ -150,15 +150,15 @@
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg text-white/80 hover:bg-white/5">
             🔑 修改密码
           </button>
-          <button @click="tab='username';showSidebar=false"
+          <button @click="tab='username';sidebarOpen=false"
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg text-white/80 hover:bg-white/5">
             👤 修改用户名
           </button>
-          <button @click="tab='backup';showSidebar=false"
+          <button @click="tab='backup';sidebarOpen=false"
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg text-white/80 hover:bg-white/5">
             💾 导入/导出
           </button>
-          <button @click="tab='feedback';showSidebar=false"
+          <button @click="tab='feedback';sidebarOpen=false"
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg text-white/80 hover:bg-white/5">
             💬 建议反馈
           </button>
@@ -200,16 +200,17 @@
                     <div x-show="item.prevRejectReason" class="text-xs mt-1 py-1 px-2 bg-red-50 border border-red-100 rounded text-red-700">上次拒绝：<span x-text="item.prevRejectReason"></span></div>
                   </div>
                   <div class="flex gap-2 shrink-0 self-end sm:self-start mt-2 sm:mt-0">
-                    <button x-show="tab==='pending'" @click="review(item.id,'approve')"
-                      class="btn bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm">通过</button>
-                    <button x-show="tab==='pending'" @click="reviewReject(item.id)"
-                      class="btn bg-orange-500 text-white px-4 py-2 rounded-lg text-sm">拒绝</button>
+                    <button x-show="tab==='pending'" @click="review(item.id,'approve')" :disabled="processingId===item.id"
+                      class="btn bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm"><span x-show="processingId!==item.id">通过</span><span x-show="processingId===item.id" class="inline-block animate-spin">⏳</span></button>
+                    <button x-show="tab==='pending'" @click="reviewReject(item.id)" :disabled="processingId===item.id"
+                      class="btn bg-orange-500 text-white px-4 py-2 rounded-lg text-sm"><span x-show="processingId!==item.id">拒绝</span><span x-show="processingId===item.id" class="inline-block animate-spin">⏳</span></button>
                     <button @click="openEdit(item)"
                       class="btn bg-[#5046e4] text-white px-3 py-2 rounded-lg text-sm">编辑</button>
-                    <button @click="review(item.id, item.pinned?'unpin':'pin')"
+                    <button @click="review(item.id, item.pinned?'unpin':'pin')" :disabled="processingId===item.id"
                       class="btn text-white px-3 py-2 rounded-lg text-sm"
-                      :class="item.pinned?'bg-yellow-500':'bg-indigo-500'"
-                      x-text="item.pinned?'📌 已置顶':'置顶'"></button>
+                      :class="item.pinned?'bg-yellow-500':'bg-indigo-500'">
+                      <span x-show="processingId!==item.id" x-text="item.pinned?'📌 已置顶':'置顶'"></span>
+                      <span x-show="processingId===item.id" class="inline-block animate-spin">⏳</span></button>
                     <button @click="openChangeStatus(item)"
                       x-show="tab!=='pending'"
                       class="btn bg-teal-500 text-white px-3 py-2 rounded-lg text-sm">改状态</button>
@@ -590,7 +591,7 @@ function admin() {
     usernameForm: { newName: '' }, usernameInfo: 'admin', usernameMsg: '', usernameOk: false,
     importMsg: '', importOk: false,
     editModal: false, editForm: { id: '', title: '', avatar: '', link: '', descr: '', rss: '' },
-    editMsg: '', editOk: false, confirmDelete: null,
+    editMsg: '', editOk: false, confirmDelete: null, processingId: null,
     statusModal: false, statusItem: null, statusNew: 'approved', statusReason: '',
     notifyModal: false, notifyId: '',
     rejectModal: false, rejectId: '', rejectReasonForm: '',
@@ -706,6 +707,7 @@ function admin() {
     },
 
     async review(id, action) {
+      this.processingId = id;
       try {
         const r = await this.api('/api/admin/review', {
           method: 'POST',
@@ -715,6 +717,7 @@ function admin() {
         if (r.ok) { await this.loadList(this.tab); await this.loadCounts(); this.showToast('操作成功'); }
         else { const d = await r.json(); this.showToast(d.error || '操作失败', false); }
       } catch { this.showToast('操作失败', false); }
+      this.processingId = null;
     },
 
     async doReject() {
