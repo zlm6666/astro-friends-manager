@@ -403,12 +403,11 @@ export async function uploadToTuCang(env, imageUrl) {
 
   // 3. 内置默认值兜底
   token = token || '000000000000000000000000000000000000000000000';
-  folderId = folderId || '0000';
 
   try {
     const form = new FormData();
     form.append('token', token);
-    form.append('folderId', folderId);
+    if (folderId) form.append('folderId', folderId);
     form.append('url', imageUrl);
     const resp = await fetch('https://api.tucang.cc/api/v1/upload', {
       method: 'POST',

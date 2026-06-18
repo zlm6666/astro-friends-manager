@@ -2,10 +2,12 @@
 // 扫描邮件队列，逐封发送——带锁防并发、批次限制、失败重试
 import { sendEmail, incrEmailCounter } from '../_utils.js';
 
-const MAX_BATCH = 10;   // 单次 cron 最多发 N 封
-const MAX_RETRIES = 3;  // 单封邮件最大重试次数
+const MAX_BATCH = 10;
+const MAX_RETRIES = 3;
+const RATE_LIMIT = 3;       // 每 2 分钟最多发送 3 封
+const RATE_WINDOW = 120;    // 窗口 120 秒
 const LOCK_KEY = 'email-queue:lock';
-const LOCK_TTL = 60;    // 锁 60 秒自动释放（防实例崩溃死锁）
+const LOCK_TTL = 60;
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
@@ -27,6 +29,13 @@ export async function onRequestGet({ request, env }) {
 
     if (keys.length === 0) return new Response('OK (empty)');
 
+    // 频率限制：每 2 分钟最多发 RATE_LIMIT 封
+    const rateKey = 'email-rate:window';
+    const rateCount = parseInt(await env.LINKS.get(rateKey) || '0', 10);
+    if (rateCount >= RATE_LIMIT) {
+      return new Response(`OK (rate limited: ${rateCount}/${RATE_LIMIT})`, { status: 200 });
+    }
+
     let sent = 0, failed = 0, skipped = 0;
 
     for (const k of keys) {
@@ -42,7 +51,10 @@ export async function onRequestGet({ request, env }) {
       try {
         await sendEmail(env, entry.subject, entry.html, entry.to || undefined);
         await env.LINKS.delete(k.name);
-        if (entry.to) await incrEmailCounter(env, entry.to); // 递增计数
+        if (entry.to) await incrEmailCounter(env, entry.to);
+        // 频率计数 +1
+        const currentRate = (parseInt(await env.LINKS.get(rateKey) || '0', 10) || 0) + 1;
+        await env.LINKS.put(rateKey, String(currentRate), { expirationTtl: RATE_WINDOW });
         sent++;
       } catch (e) {
         console.error(`[send-pending] ${k.name}:`, e.message);
