@@ -323,6 +323,14 @@ init({
             <div class="grid grid-cols-2 gap-4">
               <div><div class="text-sm text-[#4a4a5a]">游标位置</div><div class="text-2xl font-bold text-[#1a1a2e]" x-text="rssStatus.cursor"></div></div>
               <div><div class="text-sm text-[#4a4a5a]">已缓存文章</div><div class="text-2xl font-bold text-[#1a1a2e]" x-text="rssStatus.articleCount"></div></div>
+              <div class="col-span-2">
+                <div class="text-sm text-[#4a4a5a] mb-1">缓存数量上限 <span class="text-xs text-gray-400">（= API 返回数）</span></div>
+                <div class="flex items-center gap-2">
+                  <input x-model.number="rssCfg.cacheSize" type="number" min="5" max="200" class="w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                  <button @click="saveRssConfig" :disabled="saving" class="btn bg-[#5046e4] text-white px-3 py-1.5 rounded-lg text-sm">保存</button>
+                  <span x-show="rssMsg" :class="rssOk?'text-green-600':'text-red-600'" class="text-xs" x-text="rssMsg"></span>
+                </div>
+              </div>
               <div class="col-span-2"><div class="text-sm text-[#4a4a5a]">上次更新</div><div class="text-[#1a1a2e]" x-text="rssStatus.lastUpdate||'从未更新'"></div></div>
               <div class="col-span-2">
                 <div class="text-sm text-[#4a4a5a]">本轮待更新</div>
@@ -532,7 +540,7 @@ init({
           <div class="card rounded-xl p-6 max-w-lg">
             <p class="text-sm text-[#4a4a5a] mb-2">有任何建议或遇到问题？欢迎反馈：</p>
             <div class="flex gap-3 mb-5">
-              <a href="https://github.com/zlm6666/friend-link-system/issues" target="_blank"
+              <a href="https://github.com/zlm6666/astro-friends-manager/issues" target="_blank"
                 class="btn bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">🐙 GitHub Issues</a>
             </div>
             <div class="border-t border-gray-100 pt-4">
@@ -672,6 +680,7 @@ function admin() {
     pwdForm: { old: '', new: '', cfm: '' }, pwdMsg: '', pwdOk: false,
     usernameForm: { newName: '' }, usernameInfo: 'admin', usernameMsg: '', usernameOk: false,
     importMsg: '', importOk: false,
+    rssCfg: { cacheSize: 20 }, rssMsg: '', rssOk: false,
     editModal: false, editForm: { id: '', title: '', avatar: '', link: '', descr: '', rss: '' },
     editMsg: '', editOk: false, confirmDelete: null, processingId: null,
     statusModal: false, statusItem: null, statusNew: 'approved', statusReason: '',
@@ -926,6 +935,19 @@ function admin() {
       } catch { alert('更新失败'); } finally { this.refreshing = false; }
     },
 
+    async saveRssConfig() {
+      this.saving = true; this.rssMsg = ''; this.rssOk = false;
+      try {
+        const r = await this.api('/api/admin/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'rss', data: { cacheSize: this.rssCfg.cacheSize } })
+        });
+        if (r.ok) { this.rssOk = true; this.rssMsg = '✅ 已保存'; }
+        else { const d = await r.json(); this.rssMsg = d.error || '保存失败'; }
+      } catch { this.rssMsg = '网络错误'; } finally { this.saving = false; }
+    },
+
     async loadConfig() {
       try {
         const r = await this.api('/api/admin/config');
@@ -936,6 +958,7 @@ function admin() {
           if (d.data?.tuCang) this.tuCangCfg = { ...this.tuCangCfg, ...d.data.tuCang };
           if (d.data?.ai) this.aiCfg = { ...this.aiCfg, ...d.data.ai };
           if (d.data?.username) this.usernameInfo = d.data.username;
+          if (d.data?.rss) this.rssCfg = { ...this.rssCfg, ...d.data.rss };
         }
       } catch {}
     },

@@ -9,6 +9,7 @@ export async function onRequestGet({ request, env }) {
   const tuCang = JSON.parse(await env.LINKS.get('config:tuCang') || 'null');
   const ai = JSON.parse(await env.LINKS.get('config:ai') || 'null');
   const smtp = JSON.parse(await env.LINKS.get('config:smtp') || 'null');
+  const rss = JSON.parse(await env.LINKS.get('config:rss') || 'null');
   const safe = (obj) => obj ? {
     ...obj,
     apiKey: obj.apiKey ? '******' : '',
@@ -21,7 +22,8 @@ export async function onRequestGet({ request, env }) {
     tuCang: safe(tuCang),
     ai: safe(ai),
     smtp: safe(smtp),
-    username
+    username,
+    rss: rss || { cacheSize: 20 }
   });
 }
 
@@ -95,6 +97,12 @@ export async function onRequestPost({ request, env }) {
     if (!data.username || !data.username.trim()) return err('用户名不能为空');
     await env.LINKS.put('config:username', data.username.trim());
     return ok({ message: '用户名已更新' });
+  }
+
+  if (type === 'rss') {
+    const cacheSize = Math.max(5, Math.min(200, parseInt(data.cacheSize) || 20));
+    await env.LINKS.put('config:rss', JSON.stringify({ cacheSize }));
+    return ok({ message: 'RSS 配置已保存' });
   }
 
   return err('未知 type');

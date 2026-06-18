@@ -79,8 +79,10 @@ export async function runRssUpdate(env) {
   const merged = [...newArticles, ...existing];
   const unique = removeDuplicates(merged);
   const sorted = sortArticlesByDate(unique);
-  const top20 = sorted.slice(0, 20);
-  const formatted = top20.map(formatArticle);
+  const rssCfg = JSON.parse(await env.LINKS.get('config:rss') || '{}');
+  const cacheSize = Math.max(5, Math.min(200, parseInt(rssCfg.cacheSize) || 20));
+  const capped = sorted.slice(0, cacheSize);
+  const formatted = capped.map(formatArticle);
 
   // 写回
   await env.LINKS.put('rss:articles', JSON.stringify(formatted));
