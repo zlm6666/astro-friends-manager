@@ -190,7 +190,7 @@ export async function onRequestPost({ request, env }) {
 <div class="info-card">
 <p><span class="label">站点名称：</span>${escapeHtml(record.title)}</p>
 <p><span class="label">站点地址：</span>${record.link}</p>
-<p><span class="label">申请状态：</span><span class="status-badge">${statusLabel}</span></p>
+<p><span class="label">申请状态：</span><strong style="color:#16a34a">${statusLabel}</strong></p>
 </div>
 <p>${restored?'您的友链已恢复展示。':'恭喜！您的站点符合本站的友链标准，现已成功添加至友链页面。'}</p>
 <p>期待在未来的日子里，我们能通过文字产生更多的共鸣与连接。如果您发现信息有误，或有其他事宜，欢迎随时来信交流。</p>`;
@@ -209,12 +209,17 @@ export async function onRequestPost({ request, env }) {
 <div class="info-card">
 <p><span class="label">站点名称：</span>${escapeHtml(record.title)}</p>
 <p><span class="label">站点地址：</span>${record.link}</p>
-<p><span class="label">申请状态：</span><span class="status-badge">${statusLabel}</span></p>
+<p><span class="label">申请状态：</span><strong style="color:#dc2626">${statusLabel}</strong></p>
 </div>
 ${blocked
   ? `<p>您的友链暂时被屏蔽，请检查内容是否符合规范。</p>${reasonBlock}<p>修改后可以重新提交申请恢复展示。</p>`
   : `<p>很抱歉，经过审核，您的站点暂时不符合本站的友链添加标准。</p>
-<p>为了保证友链圈的质量，我们通常会优先考虑<strong>内容原创度高、长期稳定更新且主题相近</strong>的博客。${reasonBlock}</p>
+<p>为了保证友链圈的质量，我们通常会优先考虑<strong>内容原创度高、长期稳定更新且主题相近</strong>的博客。本次未能通过，可能是因为：</p>
+<ul>
+<li>近期站点访问不稳定或存在安全风险；</li>
+<li>内容多为转载或非原创；</li>
+<li>长时间未更新或已停止维护。</li>
+</ul>
 <p>虽然这次未能成功，但仍然非常感谢您的支持。期待未来能在评论区见到您的身影！</p>`}`;
             await queueEmail(env, `${s} - ${record.title}`,
               buildEmailHtml(s, content, blocked ? '' : '查看详情', blocked ? '' : `${origin}/cheak`), record.email);

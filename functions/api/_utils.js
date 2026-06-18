@@ -138,7 +138,6 @@ export function buildEmailHtml(title, content, btnText, btnUrl) {
   const isApproved = title.includes('通过') || title.includes('恢复');
   const isRejected = title.includes('未通过') || title.includes('屏蔽');
   const statusColor = isApproved ? '#16a34a' : isRejected ? '#dc2626' : '#4f46e5';
-  const statusEmoji = isApproved ? '✅' : isRejected ? '💌' : '📩';
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -150,14 +149,12 @@ body{margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSys
 .email-container{max-width:600px;margin:20px auto;border:1px solid #eee;border-radius:8px;overflow:hidden}
 .email-header{padding:24px;text-align:center;border-bottom:1px solid #f0f0f0}
 .email-header h1{margin:0;font-size:20px;color:#1a1a1a;font-weight:600}
-.email-header .emoji{font-size:36px;margin-bottom:8px}
 .email-body{padding:24px;font-size:15px}
 .email-body p{margin:0 0 16px}
-.info-card{background:#fafafa;border-left:4px solid ${statusColor};padding:16px;margin:20px 0;border-radius:4px}
+.info-card{background:#fafafa;border-left:4px solid #4f46e5;padding:16px;margin:20px 0;border-radius:4px}
 .info-card p{margin:0 0 8px;word-break:break-all}
 .info-card p:last-child{margin-bottom:0}
 .label{font-weight:600;color:#555;display:inline-block;min-width:60px}
-.status-badge{display:inline-block;padding:2px 12px;border-radius:999px;font-size:13px;font-weight:600;color:#fff;background:${statusColor}}
 .button-container{text-align:center;margin:30px 0}
 .button{display:inline-block;background:#4f46e5;color:#fff!important;text-decoration:none;padding:12px 28px;border-radius:6px;font-weight:500}
 .button:hover{background:#4338ca}
@@ -171,7 +168,6 @@ body{margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSys
 <body>
 <div class="email-container">
   <div class="email-header">
-    <div class="emoji">${statusEmoji}</div>
     <h1>${title}</h1>
   </div>
   <div class="email-body">
@@ -179,7 +175,7 @@ body{margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSys
     ${btnText && btnUrl ? `<div class="button-container"><a href="${btnUrl}" class="button">${btnText}</a></div>` : ''}
   </div>
   <div class="email-footer">
-    友链管理系统 · 自动通知
+    此为系统自动发送的邮件，请勿直接回复。
   </div>
 </div>
 </body>
