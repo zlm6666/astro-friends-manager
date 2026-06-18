@@ -958,7 +958,7 @@ function admin() {
     async testEmail() {
       this.testing = true; this.emailMsg = ''; this.emailOk = false;
       try {
-        const r = await this.api('/api/admin/test-email', { method: 'POST' });
+        const r = await this.api('/api/admin/test-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: this.testEmailType }) });
         const d = await r.json();
         if (r.ok) { this.emailOk = true; this.emailMsg = '✅ ' + (d.data?.message || '已发送'); }
         else { this.emailMsg = '❌ ' + (d.error || '失败'); }
@@ -1017,7 +1017,7 @@ function admin() {
         const r = await this.api('/api/admin/config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'username', username: this.usernameForm.newName })
+          body: JSON.stringify({ type: 'username', data: { username: this.usernameForm.newName } })
         });
         if (r.ok) {
           this.usernameInfo = this.usernameForm.newName;
