@@ -549,18 +549,18 @@ init({
             <div x-show="blError" class="text-red-600 text-sm mb-3" x-text="blError"></div>
             <div x-show="blacklist.length===0 && !blLoading" class="text-sm text-gray-400">暂无发送记录</div>
             <template x-for="b in blacklist" :key="b.email">
-              <div class="flex items-center justify-between rounded-lg px-4 py-3 mb-2"
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg px-4 py-3 mb-2"
                 :class="b.blocked ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'">
-                <div class="flex-1 min-w-0">
-                  <span class="text-sm font-medium text-[#1a1a2e] break-all" x-text="b.email"></span>
-                  <span class="text-xs ml-2" :class="b.blocked ? 'text-red-500' : 'text-gray-400'" x-text="b.count + '/' + 3 + ' 次'"></span>
+                <div class="min-w-0 flex items-center gap-2">
+                  <span class="text-sm font-medium text-[#1a1a2e] break-words" x-text="b.email"></span>
+                  <span class="text-xs whitespace-nowrap shrink-0" :class="b.blocked ? 'text-red-500' : 'text-gray-400'" x-text="b.count + '/' + 3 + ' 次'"></span>
                 </div>
-                <div class="flex gap-1.5 flex-shrink-0 ml-3">
+                <div class="flex gap-1.5 shrink-0">
                   <button @click="resetBlacklist(b.email)" :disabled="blLoading"
-                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors touch-manipulation active:scale-[0.97]"
+                    class="px-4 py-2 rounded-lg text-xs font-medium transition-colors touch-manipulation active:scale-[0.97]"
                     :class="b.blocked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'">{{ b.blocked ? '解除' : '重置' }}</button>
                   <button x-show="!b.blocked" @click="blockBlacklist(b.email)" :disabled="blLoading"
-                    class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors touch-manipulation active:scale-[0.97]">拉黑</button>
+                    class="px-4 py-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors touch-manipulation active:scale-[0.97]">拉黑</button>
                 </div>
               </div>
             </template>
