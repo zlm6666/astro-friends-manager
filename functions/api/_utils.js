@@ -174,6 +174,9 @@ body,p,h1,h2,h3,li,.label,.email-body p,.email-footer,.info-card,.info-card p,.e
 .email-footer{color:#888!important;-webkit-text-fill-color:#888!important;background:#ffffff!important}
 .info-card{background:#fafafa!important;border-left:4px solid #4f46e5!important}
 .label{color:#555!important;-webkit-text-fill-color:#555!important}
+.info-card p{color:#fff!important;-webkit-text-fill-color:#fff!important}
+.info-card .label{color:#ccc!important;-webkit-text-fill-color:#ccc!important}
+.info-card td{color:#fff!important;-webkit-text-fill-color:#fff!important}
 .button{background:#4f46e5!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 }
 </style>

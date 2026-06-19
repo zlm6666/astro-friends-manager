@@ -18,25 +18,26 @@ export async function onRequestPost({ request, env }) {
   const errors = validateLink(body);
   if (errors.length) return err('校验失败', 400, { errors });
 
-  // 防止重复：按 link 去重
+  // 防止重复：按 link 去重（忽略末尾斜杠差异）
+  const normalizeUrl = u => u.replace(/\/+$/, '');
   const pending = await getList(env, 'link:list:pending');
   const approved = await getList(env, 'link:list:approved');
   const rejected = await getList(env, 'link:list:rejected');
-  const link = body.link.trim();
+  const link = normalizeUrl(body.link.trim());
   for (const id of pending) {
     const r = JSON.parse(await env.LINKS.get(`link:pending:${id}`) || 'null');
-    if (r?.link === link) return err('该链接已有待审核申请');
+    if (r && normalizeUrl(r.link) === link) return err('该链接已有待审核申请');
   }
   for (const id of approved) {
     const r = JSON.parse(await env.LINKS.get(`link:approved:${id}`) || 'null');
-    if (r?.link === link) return err('该链接已存在友链');
+    if (r && normalizeUrl(r.link) === link) return err('该链接已存在友链');
   }
 
   // 被拒绝后再次提交 → 移回待审核区
   let prevRejectReason = '';
   for (const id of rejected) {
     const r = JSON.parse(await env.LINKS.get(`link:rejected:${id}`) || 'null');
-    if (r?.link === link) {
+    if (r && normalizeUrl(r.link) === link) {
       prevRejectReason = r.rejectReason || '';
       // 从 rejected 删除
       await env.LINKS.delete(`link:rejected:${id}`);
