@@ -558,7 +558,8 @@ init({
                 <div class="flex gap-1.5 shrink-0">
                   <button @click="resetBlacklist(b.email)" :disabled="blLoading"
                     class="px-4 py-2 rounded-lg text-xs font-medium transition-colors touch-manipulation active:scale-[0.97]"
-                    :class="b.blocked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'">{{ b.blocked ? '解除' : '重置' }}</button>
+                    :class="b.blocked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                    x-text="b.blocked ? '解除' : '重置'"></button>
                   <button x-show="!b.blocked" @click="blockBlacklist(b.email)" :disabled="blLoading"
                     class="px-4 py-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors touch-manipulation active:scale-[0.97]">拉黑</button>
                 </div>
