@@ -239,15 +239,15 @@ init({
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg text-white/80 hover:bg-white/5">
             🔑 修改密码
           </button>
-          <button @click="tab='username';if(window.innerWidth<1024)sidebarOpen=false" :class="sidebarClass('username')"
+          <button @click="switchTab('username')" :class="sidebarClass('username')"
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg">
             👤 修改用户名
           </button>
-          <button @click="tab='backup';if(window.innerWidth<1024)sidebarOpen=false" :class="sidebarClass('backup')"
+          <button @click="switchTab('backup')" :class="sidebarClass('backup')"
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg">
             💾 导入/导出
           </button>
-          <button @click="tab='blacklist';if(window.innerWidth<1024)sidebarOpen=false" :class="sidebarClass('blacklist')"
+          <button @click="switchTab('blacklist')" :class="sidebarClass('blacklist')"
             class="sidebar-link w-full text-left px-4 py-2.5 rounded-lg">
             🚫 黑名单
           </button>
@@ -541,7 +541,7 @@ init({
         <!-- === 黑名单 === -->
         <div x-show="tab==='blacklist'" x-transition.opacity.duration.200>
           <h2 class="text-2xl font-bold text-[#1a1a2e] mb-4">🚫 黑名单</h2>
-          <div class="card rounded-xl p-6 max-w-lg">
+          <div class="card rounded-xl p-6">
             <p class="text-sm text-[#4a4a5a] mb-3">每个申请人邮箱最多收 3 封邮件，管理员邮箱除外。显示所有发送记录，便于提前干预。</p>
             <button @click="loadBlacklist" :disabled="blLoading" class="btn bg-[#5046e4] text-white px-4 py-2 rounded-lg text-sm mb-4">
               <span x-show="!blLoading">🔄 刷新</span><span x-show="blLoading">加载中…</span>
@@ -802,8 +802,9 @@ function admin() {
       this.tab = t;
       if (window.innerWidth < 1024) this.sidebarOpen = false;
       if (['pending', 'approved', 'rejected'].includes(t)) this.loadList(t);
-      else if (t === 'rss') this.loadRssStatus();
+      else if (t === 'rss') { this.loadConfig(); this.loadRssStatus(); }
       else if (t === 'email' || t === 'tucang' || t === 'ai') this.loadConfig();
+      else if (t === 'blacklist') this.loadBlacklist();
     },
 
     async loadCounts() {
