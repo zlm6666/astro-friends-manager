@@ -193,7 +193,7 @@ export async function onRequestPost({ request, env }) {
             const statusLabel = restored ? '已恢复' : '已通过';
             const content = `<p>您好 <strong>${escapeHtml(record.title)}</strong>，</p>
 <p>感谢您对本站的关注与喜爱，您提交的友链申请我们已经处理完毕。</p>
-<div class="info-card" style="background:#fafafa;color:#333;-webkit-text-fill-color:#333">
+<div class="info-card" style="background:#1a1a2e;color:#fff">
 <p><span class="label">站点名称：</span>${escapeHtml(record.title)}</p>
 <p><span class="label">站点地址：</span>${record.link}</p>
 <p><span class="label">申请状态：</span><strong style="color:#16a34a;-webkit-text-fill-color:#16a34a">${statusLabel}</strong></p>
@@ -212,7 +212,7 @@ export async function onRequestPost({ request, env }) {
               : '';
             const content = `<p>您好 <strong>${escapeHtml(record.title)}</strong>，</p>
 <p>感谢您对本站的关注与喜爱。</p>
-<div class="info-card" style="background:#fafafa;color:#333;-webkit-text-fill-color:#333">
+<div class="info-card" style="background:#1a1a2e;color:#fff">
 <p><span class="label">站点名称：</span>${escapeHtml(record.title)}</p>
 <p><span class="label">站点地址：</span>${record.link}</p>
 <p><span class="label">申请状态：</span><strong style="color:#dc2626;-webkit-text-fill-color:#dc2626">${statusLabel}</strong></p>
