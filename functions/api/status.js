@@ -1,7 +1,13 @@
 // functions/api/status.js
-import { ok, err, getList } from './_utils.js';
+import { ok, err, getList, globalRateLimit } from './_utils.js';
 
 export async function onRequestGet({ request, env }) {
+  if (!(await globalRateLimit(env, 'status', 100, 60))) {
+    return new Response(JSON.stringify({ error: '请求过于频繁' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
   const url = new URL(request.url);
   const q = (url.searchParams.get('q') || '').trim();
   if (!q) return err('查询参数 q 必填');

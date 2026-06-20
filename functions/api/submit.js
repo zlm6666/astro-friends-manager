@@ -1,5 +1,5 @@
 // functions/api/submit.js
-import { ok, err, validateLink, genId, getList, setList, queueEmail, flushEmailQueue, buildEmailHtml, escapeHtml } from './_utils.js';
+import { ok, err, validateLink, genId, getList, setList, queueEmail, flushEmailQueue, buildEmailHtml, escapeHtml, globalRateLimit } from './_utils.js';
 
 export async function onRequestGet() {
   return new Response(JSON.stringify({ error: '此接口需要 POST 请求' }), {
@@ -9,6 +9,12 @@ export async function onRequestGet() {
 }
 
 export async function onRequestPost({ request, env }) {
+  // Content-Type 不合法直接拒，不碰 KV
+  const ct = request.headers.get('Content-Type') || '';
+  if (!ct.includes('application/json')) {
+    return err('请使用 JSON 格式提交', 400);
+  }
+
   let body;
   try {
     body = await request.json();
@@ -17,6 +23,14 @@ export async function onRequestPost({ request, env }) {
   }
   const errors = validateLink(body);
   if (errors.length) return err('校验失败', 400, { errors });
+
+  // 全局速率限制：每分钟最多 30 次提交
+  if (!(await globalRateLimit(env, 'submit', 30, 60))) {
+    return new Response(JSON.stringify({ error: '请求过于频繁，请稍后再试' }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
 
   // 防止重复：按 link 去重（忽略末尾斜杠差异）
   const normalizeUrl = u => u.replace(/\/+$/, '');

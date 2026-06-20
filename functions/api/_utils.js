@@ -111,6 +111,27 @@ export function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+// IP 速率限制（基于 KV，轻量防刷）
+export async function rateLimit(env, ip, prefix, maxReq, windowSec) {
+  const key = `rl:${prefix}:${ip}`;
+  const raw = await env.LINKS.get(key);
+  const count = raw ? parseInt(raw, 10) : 0;
+  if (count >= maxReq) return false;
+  await env.LINKS.put(key, String(count + 1), { expirationTtl: windowSec });
+  return true;
+}
+
+// 全局速率限制（不计 IP，所有请求共享一个计数器）
+export async function globalRateLimit(env, prefix, maxReq, windowSec) {
+  const w = Math.floor(Date.now() / 1000 / windowSec);
+  const key = `rl:g:${prefix}:${w}`;
+  const raw = await env.LINKS.get(key);
+  const count = raw ? parseInt(raw, 10) : 0;
+  if (count >= maxReq) return false;
+  await env.LINKS.put(key, String(count + 1), { expirationTtl: windowSec });
+  return true;
+}
+
 // 简单字段验证
 export function validateLink(data) {
   const errors = [];
