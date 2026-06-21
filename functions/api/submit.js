@@ -9,6 +9,15 @@ export async function onRequestGet() {
 }
 
 export async function onRequestPost({ request, env }) {
+  // Referer 来源检查（防直接 curl 调 API）
+  const referer = request.headers.get('Referer') || request.headers.get('Origin') || '';
+  if (!referer || !referer.includes('friends.xiaow.qzz.io')) {
+    return new Response(JSON.stringify({ error: '请通过页面提交' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+
   // Content-Type 不合法直接拒，不碰 KV
   const ct = request.headers.get('Content-Type') || '';
   if (!ct.includes('application/json')) {
