@@ -24,8 +24,8 @@ export async function onRequestPost({ request, env }) {
   const errors = validateLink(body);
   if (errors.length) return err('校验失败', 400, { errors });
 
-  // 全局速率限制：每分钟最多 30 次提交
-  if (!(await globalRateLimit(env, 'submit', 30, 300))) {
+  // 全局速率限制：每 300 秒最多 10 次提交
+  if (!(await globalRateLimit(env, 'submit', 10, 300))) {
     return new Response(JSON.stringify({ error: '请求过于频繁，请稍后再试' }), {
       status: 429,
       headers: { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' }
@@ -35,6 +35,8 @@ export async function onRequestPost({ request, env }) {
   // 防止重复：按 link 去重（忽略末尾斜杠差异）
   const normalizeUrl = u => u.replace(/\/+$/, '');
   const pending = await getList(env, 'link:list:pending');
+  // 待审核上限保护
+  if (pending.length >= 100) return err('待审核队列已满，请稍后再试', 503);
   const approved = await getList(env, 'link:list:approved');
   const rejected = await getList(env, 'link:list:rejected');
   const link = normalizeUrl(body.link.trim());
