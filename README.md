@@ -285,3 +285,20 @@ Qexo 兼容格式：
 ## 📄 License
 
 MIT
+
+---
+
+## 🔧 环境变量 (Cloudflare Pages)
+
+部署时在 Dashboard → 设置 → 环境变量中配置：
+
+| 变量 | 必填 | 说明 |
+|------|------|------|
+| `BLOG_URL` | ✅ | 博客地址，用于通知邮件中的友链链接和 RSS 默认源 |
+| `SITE_DOMAIN` | ✅ | 本站域名，Referer 来源校验防 API 直调 |
+| `CRON_SECRET` | 推荐 | 邮件发送 cron job 鉴权密钥 |
+| `DEEPSEEK_KEY` | ❌ | AI 智能解析友链信息（DeepSeek） |
+| `TUCANG_TOKEN` | ❌ | 图床上传头像 |
+| `TUCANG_FOLDER_ID` | ❌ | 图床文件夹 ID |
+
+参考 `.env.example` 文件。
