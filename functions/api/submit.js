@@ -24,10 +24,10 @@ export async function onRequestPost({ request, env }) {
   const errors = validateLink(body);
   if (errors.length) return err('校验失败', 400, { errors });
 
-  // URL 黑名单检查
+  // URL 黑名单检查（按根域名匹配）
   const urlBlacklist = JSON.parse(await env.LINKS.get('config:url-blacklist') || '[]');
-  const submittedUrl = (body.link || '').replace(/\/+$/, '').toLowerCase();
-  if (urlBlacklist.some(u => submittedUrl.includes(u))) {
+  const submittedHost = (() => { try { return new URL(body.link).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } })();
+  if (urlBlacklist.some(u => u.includes('.') && submittedHost === u.replace(/^www\./, '').toLowerCase())) {
     return err('该链接已被加入黑名单', 403);
   }
 
