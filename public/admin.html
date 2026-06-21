@@ -574,30 +574,59 @@ init({
         <!-- === 黑名单 === -->
         <div x-show="tab==='blacklist'" x-transition.opacity.duration.200>
           <h2 class="text-2xl font-bold text-[#1a1a2e] mb-4">🚫 黑名单</h2>
-          <div class="card rounded-xl p-6">
-            <p class="text-sm text-[#4a4a5a] mb-3">每个申请人邮箱最多收 3 封邮件，管理员邮箱除外。显示所有发送记录，便于提前干预。</p>
-            <button @click="loadBlacklist" :disabled="blLoading" class="btn bg-[#5046e4] text-white px-4 py-2 rounded-lg text-sm mb-4">
-              <span x-show="!blLoading">🔄 刷新</span><span x-show="blLoading">加载中…</span>
-            </button>
-            <div x-show="blError" class="text-red-600 text-sm mb-3" x-text="blError"></div>
-            <div x-show="blacklist.length===0 && !blLoading" class="text-sm text-gray-400">暂无发送记录</div>
-            <template x-for="b in blacklist" :key="b.email">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg px-4 py-3 mb-2"
-                :class="b.blocked ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'">
-                <div class="min-w-0 flex items-center gap-2">
-                  <span class="text-sm font-medium text-[#1a1a2e] break-words" x-text="b.email"></span>
-                  <span class="text-xs whitespace-nowrap shrink-0" :class="b.blocked ? 'text-red-500' : 'text-gray-400'" x-text="b.count + '/' + 3 + ' 次'"></span>
+          <!-- 子 tab 切换 -->
+          <div class="flex gap-2 mb-4">
+            <button @click="blTab='email'" class="px-4 py-1.5 rounded-lg text-sm" :class="blTab==='email'?'bg-[#5046e4] text-white':'bg-gray-100 text-[#4a4a5a]'">📧 邮件黑名单</button>
+            <button @click="blTab='url'" class="px-4 py-1.5 rounded-lg text-sm" :class="blTab==='url'?'bg-[#5046e4] text-white':'bg-gray-100 text-[#4a4a5a]'">🔗 网址黑名单</button>
+          </div>
+
+          <!-- 邮件黑名单 -->
+          <div x-show="blTab==='email'">
+            <div class="card rounded-xl p-6">
+              <p class="text-sm text-[#4a4a5a] mb-3">每个申请人邮箱最多收 3 封邮件，管理员邮箱除外。</p>
+              <button @click="loadBlacklist" :disabled="blLoading" class="btn bg-[#5046e4] text-white px-4 py-2 rounded-lg text-sm mb-4">
+                <span x-show="!blLoading">🔄 刷新</span><span x-show="blLoading">加载中…</span>
+              </button>
+              <div x-show="blError" class="text-red-600 text-sm mb-3" x-text="blError"></div>
+              <div x-show="blacklist.length===0 && !blLoading" class="text-sm text-gray-400">暂无发送记录</div>
+              <template x-for="b in blacklist" :key="b.email">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg px-4 py-3 mb-2"
+                  :class="b.blocked ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'">
+                  <div class="min-w-0 flex items-center gap-2">
+                    <span class="text-sm font-medium text-[#1a1a2e] break-words" x-text="b.email"></span>
+                    <span class="text-xs whitespace-nowrap shrink-0" :class="b.blocked ? 'text-red-500' : 'text-gray-400'" x-text="b.count + '/' + 3 + ' 次'"></span>
+                  </div>
+                  <div class="flex gap-1.5 shrink-0">
+                    <button @click="resetBlacklist(b.email)" :disabled="blLoading"
+                      class="px-4 py-2 rounded-lg text-xs font-medium"
+                      :class="b.blocked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                      x-text="b.blocked ? '解除' : '重置'"></button>
+                    <button x-show="!b.blocked" @click="blockBlacklist(b.email)" :disabled="blLoading"
+                      class="px-4 py-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100">拉黑</button>
+                  </div>
                 </div>
-                <div class="flex gap-1.5 shrink-0">
-                  <button @click="resetBlacklist(b.email)" :disabled="blLoading"
-                    class="px-4 py-2 rounded-lg text-xs font-medium transition-colors touch-manipulation active:scale-[0.97]"
-                    :class="b.blocked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
-                    x-text="b.blocked ? '解除' : '重置'"></button>
-                  <button x-show="!b.blocked" @click="blockBlacklist(b.email)" :disabled="blLoading"
-                    class="px-4 py-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition-colors touch-manipulation active:scale-[0.97]">拉黑</button>
-                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 网址黑名单 -->
+          <div x-show="blTab==='url'">
+            <div class="card rounded-xl p-6">
+              <p class="text-sm text-[#4a4a5a] mb-3">在黑名单中的站点提交友链时会被自动拒绝。支持按域名或部分 URL 匹配。</p>
+              <div class="flex gap-2 mb-4">
+                <input x-model="urlBlUrl" type="text" @keyup.enter="addUrlBlacklist" placeholder="输入网址/域名，如 example.com" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                <button @click="addUrlBlacklist" class="btn bg-[#5046e4] text-white px-4 py-2 rounded-lg text-sm">添加</button>
               </div>
-            </template>
+              <p x-show="urlBlMsg" class="text-sm mb-3" :class="urlBlMsg.includes('失败')||urlBlMsg.includes('已存在')?'text-red-600':'text-green-600'" x-text="urlBlMsg"></p>
+              <button @click="loadUrlBlacklist" :disabled="blLoading" class="btn bg-gray-100 text-[#4a4a5a] px-4 py-2 rounded-lg text-sm mb-4">🔄 刷新</button>
+              <div x-show="urlBlacklist.length===0 && !blLoading" class="text-sm text-gray-400">暂无黑名单网址</div>
+              <template x-for="u in urlBlacklist" :key="u">
+                <div class="flex items-center justify-between rounded-lg px-4 py-3 mb-2 bg-gray-50 border border-gray-100">
+                  <span class="text-sm text-[#1a1a2e] break-all" x-text="u"></span>
+                  <button @click="removeUrlBlacklist(u)" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 shrink-0">移除</button>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
 
@@ -780,6 +809,7 @@ function admin() {
     usernameForm: { newName: '' }, usernameInfo: 'admin', usernameMsg: '', usernameOk: false,
     importMsg: '', importOk: false,
     blacklist: [], blLoading: false, blError: '',
+    blTab: 'email', urlBlacklist: [], urlBlUrl: '', urlBlMsg: '',
     rssCfg: { cacheSize: 20 }, rssMsg: '', rssOk: false,
     editModal: false, editForm: { id: '', title: '', avatar: '', link: '', descr: '', rss: '' },
     editMsg: '', editOk: false, confirmDelete: null, processingId: null,
@@ -1115,6 +1145,46 @@ function admin() {
         if (r.ok) { await this.loadBlacklist(); }
         else { const d = await r.json(); this.blError = d.error || '操作失败'; }
       } catch { this.blError = '网络错误'; } finally { this.blLoading = false; }
+    },
+
+    // URL 黑名单
+    async loadUrlBlacklist() {
+      this.blLoading = true; this.urlBlMsg = '';
+      try {
+        const r = await this.api('/api/admin/blacklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list', type: 'url' })
+        });
+        if (r.ok) { const d = await r.json(); this.urlBlacklist = d.data?.list || []; }
+        else { const d = await r.json(); this.urlBlMsg = '❌ ' + (d.error || '加载失败'); }
+      } catch { this.urlBlMsg = '❌ 网络错误'; } finally { this.blLoading = false; }
+    },
+    async addUrlBlacklist() {
+      const url = this.urlBlUrl.trim();
+      if (!url) { this.urlBlMsg = '请输入网址'; return; }
+      this.blLoading = true; this.urlBlMsg = '';
+      try {
+        const r = await this.api('/api/admin/blacklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add', type: 'url', url })
+        });
+        if (r.ok) { this.urlBlUrl = ''; this.urlBlMsg = '✅ 已添加'; await this.loadUrlBlacklist(); }
+        else { const d = await r.json(); this.urlBlMsg = '❌ ' + (d.error || '操作失败'); }
+      } catch { this.urlBlMsg = '❌ 网络错误'; } finally { this.blLoading = false; }
+    },
+    async removeUrlBlacklist(url) {
+      this.blLoading = true; this.urlBlMsg = '';
+      try {
+        const r = await this.api('/api/admin/blacklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'remove', type: 'url', url })
+        });
+        if (r.ok) { this.urlBlMsg = '✅ 已移除'; await this.loadUrlBlacklist(); }
+        else { const d = await r.json(); this.urlBlMsg = '❌ ' + (d.error || '操作失败'); }
+      } catch { this.urlBlMsg = '❌ 网络错误'; } finally { this.blLoading = false; }
     },
 
     async loadConfig() {

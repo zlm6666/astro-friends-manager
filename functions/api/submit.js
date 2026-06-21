@@ -24,6 +24,13 @@ export async function onRequestPost({ request, env }) {
   const errors = validateLink(body);
   if (errors.length) return err('校验失败', 400, { errors });
 
+  // URL 黑名单检查
+  const urlBlacklist = JSON.parse(await env.LINKS.get('config:url-blacklist') || '[]');
+  const submittedUrl = (body.link || '').replace(/\/+$/, '').toLowerCase();
+  if (urlBlacklist.some(u => submittedUrl.includes(u))) {
+    return err('该链接已被加入黑名单', 403);
+  }
+
   // 全局速率限制：每 300 秒最多 10 次提交
   if (!(await globalRateLimit(env, 'submit', 10, 300))) {
     return new Response(JSON.stringify({ error: '请求过于频繁，请稍后再试' }), {
