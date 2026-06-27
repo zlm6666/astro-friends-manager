@@ -1,5 +1,5 @@
 // functions/api/submit.js
-import { ok, err, validateLink, genId, getList, setList, queueEmail, flushEmailQueue, buildEmailHtml, escapeHtml, globalRateLimit } from './_utils.js';
+import { ok, err, validateLink, genId, getList, setList, queueEmail, flushEmailQueue, buildEmailHtml, escapeHtml, globalRateLimit, checkLinkDNS, checkEmailMX } from './_utils.js';
 
 export async function onRequestGet() {
   return new Response(JSON.stringify({ error: '此接口需要 POST 请求' }), {
@@ -46,6 +46,14 @@ export async function onRequestPost({ request, env }) {
   if (sig !== parts[1]) return err('令牌无效', 403);
   const errors = validateLink(body);
   if (errors.length) return err('校验失败', 400, { errors });
+
+  // DNS / MX 预校验（不碰 KV，无效直接打回）
+  const [linkOk, emailOk] = await Promise.all([
+    checkLinkDNS(body.link),
+    body.email ? checkEmailMX(body.email) : Promise.resolve(true)
+  ]);
+  if (!linkOk) return err('无法解析站点域名，请确认链接格式正确', 422);
+  if (!emailOk) return err('邮箱域名不存在或无法接收邮件，请检查邮箱地址', 422);
 
   // URL 黑名单检查（按根域名匹配）
   const urlBlacklist = JSON.parse(await env.LINKS.get('config:url-blacklist') || '[]');

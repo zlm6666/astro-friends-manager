@@ -121,6 +121,29 @@ export async function rateLimit(env, ip, prefix, maxReq, windowSec) {
   return true;
 }
 
+// DNS 校验：查询 A/AAAA 记录，有结果即返回域名
+async function dnsQuery(name, type) {
+  try {
+    const resp = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`, {
+      headers: { Accept: 'application/dns-json' }
+    });
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return (data.Answer || []).filter(r => r.type === (type === 'A' ? 1 : (type === 'AAAA' ? 28 : 15)));
+  } catch { return []; }
+}
+
+// 校验链接域名是否可解析
+export async function checkLinkDNS(link) {
+  try { const host = new URL(link).hostname; const a = await dnsQuery(host, 'A'); const aaaa = await dnsQuery(host, 'AAAA'); return a.length > 0 || aaaa.length > 0; } catch { return false; }
+}
+
+// 校验邮箱域名的 MX 记录
+export async function checkEmailMX(email) {
+  if (!email || !email.includes('@')) return false;
+  try { const domain = email.split('@')[1]; const mx = await dnsQuery(domain, 'MX'); return mx.length > 0; } catch { return false; }
+}
+
 // 全局速率限制（不计 IP，所有请求共享一个计数器）
 export async function globalRateLimit(env, prefix, maxReq, windowSec) {
   const w = Math.floor(Date.now() / 1000 / windowSec);
