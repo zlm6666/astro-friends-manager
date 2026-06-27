@@ -852,6 +852,7 @@ function admin() {
           const d = await r.json();
           this.list = d.data?.list || [];
           this.counts.pending = d.data?.total || 0;
+          this.loadConfig();
         } else if (r.status === 401) {
           localStorage.removeItem('admin_token');
           this.loginError = '会话已过期，请重新登录';
