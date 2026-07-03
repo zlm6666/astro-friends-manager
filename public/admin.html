@@ -834,6 +834,8 @@ function admin() {
     },
 
     init() {
+      const saved = localStorage.getItem('admin_user');
+      if (saved) this.loginForm.user = saved;
       window.addEventListener('resize', () => {
         this.sidebarOpen = window.innerWidth >= 1024;
       });
@@ -881,6 +883,7 @@ function admin() {
         const data = await resp.json();
         if (!resp.ok || data.error) { this.loginError = data.error || '登录失败'; this.loggingIn = false; return; }
         localStorage.setItem('admin_token', data.data.token);
+        localStorage.setItem('admin_user', this.loginForm.user);
         this.loggedIn = true; this.user = this.loginForm.user;
         this.mustChangePwd = !!data.data?.mustChangePassword;
         this.loggingIn = false;
