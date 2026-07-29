@@ -173,8 +173,19 @@ function stripTags(s) {
 function decodeEntities(s) {
   return String(s || '')
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'").replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+    .replace(/&apos;/g, "'").replace(/&#39;/g, "'");
+}
+
+// XSS 防护：HTML 实体编码，存入 KV 前对所有文本字段调用
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 }
 
 function removeDuplicates(articles) {
@@ -223,13 +234,14 @@ function formatArticle(article) {
     || article.contentSnippet || article.description || article.summary || '';
   const cleanContent = cleanHtml(content).substring(0, 200);
 
+  // XSS 防护：所有文本字段存入 KV 前做 HTML 实体编码
   return {
-    title: cleanText(article.title || '无标题'),
-    auther,
+    title: escapeHtml(cleanText(article.title || '无标题')),
+    auther: escapeHtml(auther),
     date: dateStr,
     isoDate: toCST(date),
     link: article.link || '',
-    content: cleanContent,
-    sourceFeedTitle: article.sourceFeedTitle || auther      // 保留，供下次合并重新入库时用
+    content: escapeHtml(cleanContent),
+    sourceFeedTitle: escapeHtml(article.sourceFeedTitle || auther)      // 保留，供下次合并重新入库时用
   };
 }
