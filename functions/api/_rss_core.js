@@ -7,7 +7,7 @@ function toCST(ts) {
   const d = ts ? new Date(ts) : new Date();
   const cst = new Date(d.getTime() + 8 * 3600000);
   const pad = n => String(n).padStart(2, '0');
-  return `${cst.getUTCFullYear()}-${pad(cst.getUTCMonth()+1)}-${pad(cst.getUTCDate())}T${pad(cst.getUTCHours())}:${pad(cst.getUTCMinutes())}:${pad(cst.getUTCSeconds())}`;
+  return `${cst.getUTCFullYear()}-${pad(cst.getUTCMonth()+1)}-${pad(cst.getUTCDate())} ${pad(cst.getUTCHours())}:${pad(cst.getUTCMinutes())}:${pad(cst.getUTCSeconds())}`;
 }
 
 // 默认源（申请友链无 RSS 时使用这些兜底）
